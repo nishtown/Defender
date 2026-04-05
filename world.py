@@ -15,11 +15,12 @@ class World(Scene):
     def __init__(self, main):
         super().__init__(main)
         self.font = pygame.font.SysFont(None, 60)
-        self.bg_image_original = pygame.image.load("assets/levels/level1.png")
-        self.bg_image_menu = pygame.image.load("assets/levels/level1_menu.png").convert_alpha()
-        self.wave_completed_sound = pygame.mixer.Sound("assets/sounds/wave_completed.mp3")
-        self.background_music = pygame.mixer.Sound("assets/sounds/background.mp3")
-        self.background_music.set_volume(0.05)
+        self.ui_font = pygame.font.SysFont(None, 32)
+        self.bg_image_original = pygame.image.load(asset_path("assets","levels","level1.png"))
+        self.bg_image_menu = pygame.image.load(asset_path("assets","levels","level1_menu.png")).convert_alpha()
+        self.wave_completed_sound = pygame.mixer.Sound(asset_path("assets","sounds","wave_completed.ogg"))
+        self.background_music = pygame.mixer.Sound(asset_path("assets","sounds","background.ogg"))
+        self.background_music.set_volume(0.2)
         self.wave_completed_sound.set_volume(0.5)
         self.bg_image = pygame.transform.scale(self.bg_image_original, (LEVEL_WIDTH, LEVEL_HEIGHT))
         self.level_data = None
@@ -29,15 +30,17 @@ class World(Scene):
         self.tower_group = pygame.sprite.Group()
         self.selected_tower = None
 
+        self.lives = 100
         self.wave = 1
-        self.spawn_quantity = 5
+        self.spawn_quantity = 10
         self.spawned_count = 0
-        self.spawn_timer = 150
+        self.enemy_count = 10
+        self.spawn_timer = min(100, 100 - (self.spawn_quantity * self.wave))
         self.spawn_timer_count = 0
         self.started_wave = False
-        self.between_wave_delay = 5
-        self.between_wave_timer = 0
-        self.waiting_for_next_wave = False
+        self.between_wave_delay = 10
+        self.between_wave_timer = self.between_wave_delay #so the initial wave starts with a delay
+        self.waiting_for_next_wave = True
 
         self.preview_tower = BasicTower(self.main, 0, 0, 96, 64)
         self.build_tower_class = BasicTower
@@ -47,8 +50,8 @@ class World(Scene):
         self.build_mode = False
 
 
-        self.bank = 500
-
+        self.gold = 500
+        self.score = 0
 
 
         self.button_list = []
@@ -66,7 +69,6 @@ class World(Scene):
     def load_scene(self):
         self.level_data = self.load_level_json()
         self.process_data()
-        self.start_wave()
         self.background_music.play(-1)
 
     def load_level_json(self):
@@ -125,12 +127,18 @@ class World(Scene):
 
     def start_wave(self):
         self.started_wave = True
-        self.spawned_count = 0
+        if self.wave > 1:
+            self.spawn_quantity = 10 + (self.wave * 2)
+        self.spawned_count = 1
         self.spawn_timer_count = 1
+        self.enemy_count = self.spawn_quantity
         enemy = Enemy(self.main, 64, 64, self.waypoints, self.wave)
         self.enemy_group.add(enemy)
 
     def can_place_tower(self, tower):
+        if self.gold < tower.cost:
+            return False
+
         padded_rect = tower.rect.copy()
         padded_rect.inflate_ip(TOWER_PLACEMENT_BUFFER, TOWER_PLACEMENT_BUFFER)
 
@@ -193,6 +201,7 @@ class World(Scene):
                         if self.preview_valid:
                             tower = self.build_tower_class(self.main, mouse_pos[0], mouse_pos[1], 64, 64)
                             self.tower_group.add(tower)
+                            self.gold -= tower.cost
                             self.build_mode = False
 
 
@@ -221,6 +230,9 @@ class World(Scene):
             if self.spawn_timer_count == 0:
                 if self.spawned_count < self.spawn_quantity:
                     enemy = Enemy(self.main, 64, 64, self.waypoints, self.wave)
+                    if self.wave > 1:
+                        enemy.speed = enemy.speed + (enemy.speed / enemy.speed * self.wave)
+                        print(enemy.speed)
                     self.enemy_group.add(enemy)
                     self.spawned_count += 1
 
@@ -229,9 +241,17 @@ class World(Scene):
             else:
                 self.spawn_timer_count += 1
 
-
-
-            self.enemy_group.update(dt)
+            for enemy in self.enemy_group:
+                enemy.update(dt)
+                if enemy.is_dead:
+                    self.score += enemy.score_value
+                    self.gold += enemy.gold_value
+                    self.enemy_count -= 1
+                    enemy.kill()
+                if enemy.has_escaped:
+                    self.enemy_count -= 1
+                    self.lives -= 1
+                    enemy.kill()
 
             for tower in self.tower_group:
                 tower.find_target(self.enemy_group)
@@ -257,6 +277,9 @@ class World(Scene):
         #captures all buttons
         for button in self.button_list:
             button.update(dt)
+
+        if self.lives <= 0:
+            self.main.current_scene = self.main.menu_scene
 
 
     def draw_tower_preview(self, surface):
@@ -300,8 +323,39 @@ class World(Scene):
         if self.place_zone and self.build_mode:
             self.draw_tower_preview(surface)
 
+        self.draw_ui(surface)
+
         if self.main.debug_mode:
             pygame.draw.lines(surface, RED, False, self.waypoints , 1)
             for rect in self.path_rects:
                 pygame.draw.rect(surface, BLUE, rect, 1)
 
+
+
+    def draw_ui(self, surface):
+        score_text = self.ui_font.render(f"Score: {self.score}", True, (255, 255, 255))
+        gold_text = self.ui_font.render(f"Gold: {self.gold}", True, (255, 215, 0))
+        wave_text = self.ui_font.render(f"Wave: {self.wave}", True, (0, 0, 255))
+        enemy_text = self.ui_font.render(f"Enemies: {self.enemy_count}", True, (255, 125, 0))
+
+        score_rect = score_text.get_rect(topleft=(10, 10))
+        gold_rect = gold_text.get_rect(topleft=(10, 40))
+        wave_rect = wave_text.get_rect(topleft=(10, 70))
+        enemy_rect = enemy_text.get_rect(topleft=(10, 100))
+
+
+        # optional shadow
+        score_shadow = self.ui_font.render(f"Score: {self.score}", True, (0, 0, 0))
+        gold_shadow = self.ui_font.render(f"Gold: {self.gold}", True, (0, 0, 0))
+        wave_shadow = self.ui_font.render(f"Wave: {self.wave}", True, (0, 0, 0))
+        enemy_shadow = self.ui_font.render(f"Enemies: {self.enemy_count}", True, (0, 0, 0))
+
+        surface.blit(score_shadow, (score_rect.x + 2, score_rect.y + 2))
+        surface.blit(gold_shadow, (gold_rect.x + 2, gold_rect.y + 2))
+        surface.blit(wave_shadow, (wave_rect.x + 2, wave_rect.y + 2))
+        surface.blit(enemy_shadow, (enemy_rect.x + 2, enemy_rect.y + 2))
+
+        surface.blit(score_text, score_rect)
+        surface.blit(gold_text, gold_rect)
+        surface.blit(wave_text, wave_rect)
+        surface.blit(enemy_text, enemy_rect)

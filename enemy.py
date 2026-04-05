@@ -10,7 +10,7 @@ from particle_animation import *
 class Enemy(Entity):
     def __init__(self, main, width, height, waypoints, health):
         super().__init__(main, waypoints[0][0], waypoints[0][1], width, height)
-        self.image = pygame.image.load("assets/enemy/enemy.png").convert_alpha()
+        self.image = pygame.image.load(asset_path("assets", "enemy", "enemy.png")).convert_alpha()
         self.original_image = self.image.copy()
         self.waypoints = waypoints
         self.current_waypoint_index = 0
@@ -20,6 +20,15 @@ class Enemy(Entity):
         self.health = health
         self.max_health = health
         self.rect.center = self.pos
+
+        self.has_escaped = False
+        self.is_dead = False
+        self.score_value = 10
+        valueincrement = (self.health // 4)
+        if valueincrement > 0:
+            self.gold_value = 10 * valueincrement
+        else:
+            self.gold_value = 10
 
 
         self.visible_width = pygame.mask.from_surface(self.original_image).get_bounding_rects()[0].width
@@ -34,7 +43,7 @@ class Enemy(Entity):
         if self.pos.distance_to(target_pos) < 1:
             self.current_waypoint_index += 1
             if self.current_waypoint_index >= len(self.waypoints) - 1:
-                print("last")
+                self.has_escaped = True
                 return
 
             target_index = self.current_waypoint_index + 1
@@ -57,24 +66,40 @@ class Enemy(Entity):
 
 
         if self.health <= 0:
-            print("Killed")
-            particle = ParticleAnimation(
-                x=self.rect.centerx,
-                y=self.rect.centery,
-                sheet_path="assets/enemy/blood.png",
-                frame_width=100,
-                frame_height=100,
-                frame_count=18,
-                fps=30,
-                loop=False,
-                kill_on_finish=True
-            )
-            self.main.particle_group.add(particle, layer=1)
-            self.kill()
+            self.die()
 
 
         super().update(dt)
 
+    def take_damage(self, amount):
+        if self.is_dead:
+            return False
+
+        self.health -= amount
+
+        if self.health <= 0:
+            self.die()
+            return True
+
+        return False
+
+    def die(self):
+        if self.is_dead:
+            return
+
+        self.is_dead = True
+        particle = ParticleAnimation(
+            x=self.rect.centerx,
+            y=self.rect.centery,
+            sheet_path=asset_path("assets", "enemy", "blood.png"),
+            frame_width=100,
+            frame_height=100,
+            frame_count=18,
+            fps=30,
+            loop=False,
+            kill_on_finish=True
+        )
+        self.main.particle_group.add(particle, layer=1)
 
 
     def draw(self, surface):

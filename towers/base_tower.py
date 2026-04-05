@@ -34,7 +34,7 @@ class BaseTower(Entity):
             self.image = pygame.transform.rotate(self.image, 0)
 
         if self.fire_sound is not None:
-            self.fire_sound.set_volume(0.5)
+            self.fire_sound.set_volume(0.2)
 
         self.pos = Vector2(x, y)
         self.rect.center = self.pos
@@ -60,6 +60,8 @@ class BaseTower(Entity):
         self.range_image = pygame.Surface((self.range * 2, self.range * 2))
         self.range_rect = self.range_image.get_rect()
 
+    def set_volume(self, volume):
+        self.fire_sound.set_volume(volume)
 
     def rebuild_image(self):
         if self.image is not None:

@@ -51,10 +51,13 @@ class Main:
                 particle.update(dt)
                 particle.draw(self.display_surface)
 
+
             pygame.display.update()
             await asyncio.sleep(0)
 
+
         pygame.quit()
+
 
 
 if __name__ == '__main__':

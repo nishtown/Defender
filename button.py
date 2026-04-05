@@ -6,7 +6,7 @@ class Button(pygame.sprite.Sprite):
         self.main = main
         self.text = text
         self.font = pygame.font.SysFont(None, 42)
-        self.image = pygame.image.load("assets/buttons/button.png").convert_alpha()
+        self.image = pygame.image.load(asset_path("assets", "buttons", "button.png")).convert_alpha()
         self.rect = pygame.Rect(x, y , width, height)
         self.rect.center = x,y
 

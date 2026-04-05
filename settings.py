@@ -1,5 +1,13 @@
 import pygame
-SCREEN_WIDTH = 1728
+import os
+
+BASE_DIR = os.path.dirname(__file__)
+
+def asset_path(*parts):
+    return os.path.join(BASE_DIR, *parts)
+
+
+SCREEN_WIDTH = 1376
 SCREEN_HEIGHT = 1024
 
 
@@ -19,4 +27,4 @@ YELLOW = (255, 255, 0)
 ROWS = 16
 COLS = 16
 TILE_SIZE = 64
-TOWER_PLACEMENT_BUFFER = 0
+TOWER_PLACEMENT_BUFFER = 16

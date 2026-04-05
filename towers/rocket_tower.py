@@ -17,11 +17,12 @@ class RocketTower(BaseTower):
         self.damage = 10
         self.turn_tolerance = 16
         self.range = 176
-        self.image = pygame.image.load("towers/assets/tower4.png").convert_alpha()
-        self.image_firing = pygame.image.load("towers/assets/tower4_fire.png").convert_alpha()
-        self.fire_sound = pygame.mixer.Sound("towers/assets/explosion.mp3")
-        self.build_time = 8  # total seconds to build
-        self.cost = 150
+        self.image = pygame.image.load(asset_path("towers", "assets", "tower4.png")).convert_alpha()
+        self.image_firing = pygame.image.load(asset_path("towers", "assets", "tower4_fire.png")).convert_alpha()
+        self.fire_sound = pygame.mixer.Sound(asset_path("towers", "assets", "explosion.ogg"))
+        self.build_time = 30  # total seconds to build
+        self.cost = 2500
+        self.set_volume(0.2)
 
 
         self.reload() #needed to reload all the images\sounds of the base
@@ -29,11 +30,11 @@ class RocketTower(BaseTower):
 
     def apply_attack(self):
         if self.target:
-            self.target.health -= self.damage
+            self.target.take_damage(self.damage)
             particle = ParticleAnimation(
                 x=self.target.rect.centerx,
                 y=self.target.rect.centery,
-                sheet_path="towers/assets/explosion.png",
+                sheet_path=asset_path("towers", "assets", "explosion.png"),
                 frame_width=64,
                 frame_height=64,
                 frame_count=5,

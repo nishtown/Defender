@@ -16,11 +16,12 @@ class CanonTower(BaseTower):
         self.damage = 5
         self.turn_tolerance = 14
         self.range = 160
-        self.image = pygame.image.load("towers/assets/tower3.png").convert_alpha()
-        self.image_firing = pygame.image.load("towers/assets/tower3_fire.png").convert_alpha()
-        self.fire_sound = pygame.mixer.Sound("towers/assets/tower1_fire.mp3")
-        self.build_time = 5  # total seconds to build
-        self.cost = 150
+        self.image = pygame.image.load(asset_path("towers","assets","tower3.png")).convert_alpha()
+        self.image_firing = pygame.image.load(asset_path("towers","assets","tower3_fire.png")).convert_alpha()
+        self.fire_sound = pygame.mixer.Sound(asset_path("towers","assets","tower3_fire.ogg"))
+        self.build_time = 20  # total seconds to build
+        self.cost = 1750
+        self.set_volume(0.2)
 
 
         self.reload() #needed to reload all the images\sounds of the base
@@ -28,4 +29,4 @@ class CanonTower(BaseTower):
 
     def apply_attack(self):
         if self.target:
-            self.target.health -= self.damage
+            self.target.take_damage(self.damage)
