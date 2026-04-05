@@ -19,9 +19,9 @@ class World(Scene):
         self.bg_image_original = pygame.image.load(asset_path("assets","levels","level1.png"))
         self.bg_image_menu = pygame.image.load(asset_path("assets","levels","level1_menu.png")).convert_alpha()
         self.wave_completed_sound = pygame.mixer.Sound(asset_path("assets","sounds","wave_completed.ogg"))
-        self.background_music = pygame.mixer.Sound(asset_path("assets","sounds","background.ogg"))
-        self.background_music.set_volume(0.2)
-        self.wave_completed_sound.set_volume(0.5)
+        self.background_music = pygame.mixer.music.load(asset_path("assets","sounds","background.ogg"))
+        pygame.mixer.music.set_volume(0.08)
+        self.wave_completed_sound.set_volume(0.25)
         self.bg_image = pygame.transform.scale(self.bg_image_original, (LEVEL_WIDTH, LEVEL_HEIGHT))
         self.level_data = None
         self.waypoints = []
@@ -69,7 +69,7 @@ class World(Scene):
     def load_scene(self):
         self.level_data = self.load_level_json()
         self.process_data()
-        self.background_music.play(-1)
+        pygame.mixer.music.play(-1)
 
     def load_level_json(self):
         with open('assets/levels/level1.tmj') as file:

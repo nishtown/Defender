@@ -21,7 +21,7 @@ class GunTower(BaseTower):
         self.fire_sound = pygame.mixer.Sound(asset_path("towers","assets","tower2_fire.ogg"))
         self.build_time = 10  # total seconds to build
         self.cost = 750
-        self.set_volume(0.2)
+        self.set_volume(0.08)
 
 
         self.reload() #needed to reload all the images\sounds of the base
