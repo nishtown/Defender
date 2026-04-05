@@ -1,3 +1,5 @@
+import pygame.sprite
+
 from settings import *
 from scene import Scene
 from world import World
@@ -12,6 +14,8 @@ class Main:
         self.display_surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Defender")
         self.clock = pygame.time.Clock()
+
+        self.particle_group = pygame.sprite.LayeredUpdates()
 
         # Create scenes once
         self.menu_scene = Menu(self)
@@ -33,11 +37,19 @@ class Main:
                     running = False
                     break
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_d and (event.mod & pygame.KMOD_CTRL):
+                        self.debug_mode = not self.debug_mode
+
 
                 self.current_scene.handle_event(event)
 
             self.current_scene.update(dt)
             self.current_scene.draw(self.display_surface)
+
+            for particle in self.particle_group:
+                particle.update(dt)
+                particle.draw(self.display_surface)
 
             pygame.display.update()
             await asyncio.sleep(0)

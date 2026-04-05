@@ -4,7 +4,10 @@ from pygame import surface
 from settings import *
 from scene import Scene
 from enemy import Enemy
-from tower import Tower
+from towers.basic_tower import BasicTower
+from towers.gun_tower import GunTower
+from towers.canon_tower import CanonTower
+from towers.rocket_tower import RocketTower
 from button import Button
 import json
 
@@ -36,14 +39,27 @@ class World(Scene):
         self.between_wave_timer = 0
         self.waiting_for_next_wave = False
 
-        self.preview_tower = Tower(self.main, 0, 0, 96, 64)
+        self.preview_tower = BasicTower(self.main, 0, 0, 96, 64)
+        self.build_tower_class = BasicTower
         self.preview_valid = False
 
         self.place_zone = False
         self.build_mode = False
 
 
-        self.tower_button = Button(self.main, 1216, 256, 192, 64, "TOWER")
+        self.bank = 500
+
+
+
+        self.button_list = []
+        self.basic_tower_button = Button(self.main, 1216, 256, 192, 64, "TOWER 1")
+        self.button_list.append(self.basic_tower_button)
+        self.tier2_tower_button = Button(self.main, 1216, 336, 192, 64, "TOWER 2")
+        self.button_list.append(self.tier2_tower_button)
+        self.canon_tower_button = Button(self.main, 1216, 416, 192, 64, "TOWER 3")
+        self.button_list.append(self.canon_tower_button)
+        self.rocket_tower_button = Button(self.main, 1216, 496, 192, 64, "TOWER 4")
+        self.button_list.append(self.rocket_tower_button)
 
 
 
@@ -148,12 +164,26 @@ class World(Scene):
             if event.key == pygame.K_ESCAPE:
                 self.main.current_scene = self.main.menu_scene
 
-        if self.tower_button.handle_event(event): #TOWER BUTTON
+        if self.basic_tower_button.handle_event(event): #TOWER BUTTON
             self.build_mode = not self.build_mode
             if self.build_mode:
-                self.tower_button.text = "Building.."
-            else:
-                self.tower_button.text = "Tower"
+                self.preview_tower = BasicTower(self.main, 0, 0, 96, 64)
+                self.build_tower_class = BasicTower
+        if self.tier2_tower_button.handle_event(event): #TOWER BUTTON
+            self.build_mode = not self.build_mode
+            if self.build_mode:
+                self.preview_tower = GunTower(self.main, 0, 0, 96, 64)
+                self.build_tower_class = GunTower
+        if self.canon_tower_button.handle_event(event): #TOWER BUTTON
+            self.build_mode = not self.build_mode
+            if self.build_mode:
+                self.preview_tower = CanonTower(self.main, 0, 0, 96, 64)
+                self.build_tower_class = CanonTower
+        if self.rocket_tower_button.handle_event(event): #TOWER BUTTON
+            self.build_mode = not self.build_mode
+            if self.build_mode:
+                self.preview_tower = RocketTower(self.main, 0, 0, 96, 64)
+                self.build_tower_class = RocketTower
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
@@ -161,8 +191,10 @@ class World(Scene):
                 if self.place_zone:
                     if self.build_mode:  # BUILD MODE FOR PLACING TOWER
                         if self.preview_valid:
-                            tower = Tower(self.main, mouse_pos[0], mouse_pos[1], 64, 64)
+                            tower = self.build_tower_class(self.main, mouse_pos[0], mouse_pos[1], 64, 64)
                             self.tower_group.add(tower)
+                            self.build_mode = False
+
 
             self.clear_tower_selection(True)
 
@@ -223,7 +255,9 @@ class World(Scene):
             tower.update(dt)
 
         #captures all buttons
-        self.tower_button.update(dt)
+        for button in self.button_list:
+            button.update(dt)
+
 
     def draw_tower_preview(self, surface):
         # draw range circle first
@@ -259,7 +293,9 @@ class World(Scene):
         for tower in self.tower_group:
             tower.draw(surface)
 
-        self.tower_button.draw(surface)
+        # captures all buttons
+        for button in self.button_list:
+            button.draw(surface)
 
         if self.place_zone and self.build_mode:
             self.draw_tower_preview(surface)

@@ -1,0 +1,26 @@
+class Tower(Entity):
+    """
+    Basic level 1 tower.
+
+    Responsibilities:
+    - Tracks position, angle, and rotated sprite state
+    - Detects and stores a target within range
+    - Rotates toward the current target at a limited speed
+    - Fires when aligned within turn tolerance and cooldown allows
+    - Applies direct damage to the target
+    - Plays a firing animation and sound effect
+    - Supports mouse hover and selection
+    - Draws its attack range when selected
+
+    Current limitations:
+    - Hardcoded to one tower type's assets and stats
+    - Attack effect is direct damage only
+    - No build/construction state
+    - No upgrade system yet
+    - Target selection is first enemy in range only
+
+    Refactor direction:
+    - Move shared tower logic into a BaseTower class
+    - Use child classes for tower-specific assets, stats, and attack behaviour
+    - Add build states and upgradeable stat paths
+    """

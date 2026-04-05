@@ -5,6 +5,7 @@ from pygame import Vector2
 
 from settings import *
 from entity import *
+from particle_animation import *
 
 class Enemy(Entity):
     def __init__(self, main, width, height, waypoints, health):
@@ -57,7 +58,20 @@ class Enemy(Entity):
 
         if self.health <= 0:
             print("Killed")
+            particle = ParticleAnimation(
+                x=self.rect.centerx,
+                y=self.rect.centery,
+                sheet_path="assets/enemy/blood.png",
+                frame_width=100,
+                frame_height=100,
+                frame_count=18,
+                fps=30,
+                loop=False,
+                kill_on_finish=True
+            )
+            self.main.particle_group.add(particle, layer=1)
             self.kill()
+
 
         super().update(dt)
 
@@ -65,6 +79,7 @@ class Enemy(Entity):
 
     def draw(self, surface):
         super().draw(surface)
+
         if self.health < self.max_health:
             bar_width = self.visible_width
             bar_x = (self.rect.centerx - self.visible_width/2)
